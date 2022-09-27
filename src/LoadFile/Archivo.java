@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import jdk.nashorn.internal.parser.TokenType;
 
 public class Archivo {
     public String nameFile = "";
@@ -19,7 +20,7 @@ public class Archivo {
            BufferedReader obj = new BufferedReader(new FileReader(txt));
            String st = "";
            while((st = obj.readLine()) != null){
-               data.add(st);
+               data.add(cleanStringLastIndex(st));
            }
         }catch(FileNotFoundException e){
             System.out.println("No se Encontro el archivo: "+this.nameFile+" "+e);
@@ -27,5 +28,14 @@ public class Archivo {
             System.out.println("Error en la lectura del archivo "+ex);
         }
         return data;
+    }
+    
+    public String cleanStringLastIndex(String linea){
+        String newLine = "";
+        while(linea.endsWith(" ")){
+            linea = linea.substring(0,linea.length()-1);
+        }
+        newLine = linea;
+        return newLine;
     }
 }

@@ -23,7 +23,8 @@ public class AnalisisSemantico {
     public boolean bandera = false;
     
     public AnalisisSemantico(HashMap<Integer,HashMap> funcionesAll, List<String> codigoMain) {
-        this.funcionesAll = funcionesAll;
+        this.funcionesAll.putAll(funcionesAll);
+
         this.codigoMain = codigoMain.stream().toArray(String[]::new);
         this.funcionesReservadas = new String[][]{{"print","Void"},{"input","string"},{"int","int"}};
         primerAnalisis();
@@ -99,9 +100,13 @@ public class AnalisisSemantico {
                         errorMensaje("La función: " + nameFuncion + " No esta Definida", codigoMain[i]);
                     }
                 }else{//Variable que NO ESTA INSTANCIADA
+                    
                     String nameVariableMain = codigoMain[i].substring(0,codigoMain[i].indexOf("=")); //Variable a ser instanciada en el main
                     String nameFuncion = codigoMain[i].substring(codigoMain[i].indexOf("=")+1,codigoMain[i].indexOf("(") ).trim(); // Obtenemos el nombre de la funcion que se utiliza
                     for (HashMap<String, String> funcion : funcionesAll.values()) {
+//                        System.out.println(funcion);
+//                        System.out.println("aca->"+codigoMain[i]+" nmaefUNCION->"+nameFuncion+" funcion->"+funcion.get("name")+" contains->"+funcion.containsValue(nameFuncion));
+
                         if (nameFuncion.equals(funcion.get("name"))) { //Verificamos que exista una funcion llamada asi 
                             existeFuncion = true;
                             initTablaValores(funcion, nameFuncion); //Asignando Void a las lineas
@@ -112,7 +117,7 @@ public class AnalisisSemantico {
                             } else {
                                 //FALTA VALIDAR QUE NO PONGAN OTRO TIPO DE DATO 
                             }
-
+//                            break;
                         }
                     }
                     if (nameFuncion.equals("input")) {
@@ -149,6 +154,8 @@ public class AnalisisSemantico {
                 variablesTipoFuncionesAux.add(informacionFuncion);
                 variablesTipoFunciones.addAll(variablesTipoFuncionesAux);
                 variablesTipoFuncionesAux.clear();
+                this.bandera = false;
+            }else{
                 this.bandera = false;
             }
         }
@@ -232,6 +239,7 @@ public class AnalisisSemantico {
             }
         });
         analisisFuncion(nameFuncion,lineaCodigo);
+        
     }
     
     public void analisisFuncion(String nameFuncion,String lineaCodigo){
@@ -241,7 +249,7 @@ public class AnalisisSemantico {
         HashMap<String, String> funcionOriginal = new HashMap<String, String>();
         for (HashMap<String, String> funcion : funcionesAll.values()) {
             if(nameFuncion.equals(funcion.get("name"))){
-                funcionOriginal = funcion;
+                funcionOriginal.putAll(funcion); 
             }
         }
         
@@ -254,11 +262,9 @@ public class AnalisisSemantico {
             }
         }
         variablesTipoFunciones.remove(indiceFuncion);
-        
         System.out.println("PARAMETROS ->: "+funcionData.get("parametros"));
         parametros = funcionData.get("parametros").split(" ");
         //INICIANDO EL ANALISIS
-        
         //Primero eliminaremos las lineas de codigo como name, parametros ya que no nos interesan
         funcionOriginal.remove("name");
         funcionOriginal.remove("parametros");
@@ -276,7 +282,7 @@ public class AnalisisSemantico {
         String exp7 = "^\\s+[a-zA-Z]+\\s*={1}\\s*[0-9]+$";//Se detecta que tenemos una variable de tipo int
         String exp8 = "^\\s+[a-zA-Z]+\\s*={1}[a-zA-Z]+\\s*\\+{1}\\s*[a-zA-Z]+\\[{1}[a-zA-Z]\\]{1}$";//Suma de un int con un arreglo
         String exp9 = "^\\s+[a-zA-Z]+\\s*={1}[a-zA-Z]+\\s*\\[{1}[0-9]\\]{1}$";//Inicializa variable apartir de un arreglo lista[0]
-        String exp10 = "^\\s+[a-zA-Z]+\\s*={1}\\s*[a-zA-Z]+\\[{1}[a-zA-Z]\\]{1}\\*{1}[a-zA-Z]+\\s?$";
+        String exp10 = "^\\s+[a-zA-Z]+\\s*={1}\\s*[a-zA-Z]+\\[{1}[a-zA-Z]\\]{1}\\*{1}[a-zA-Z]+\\s?$";//Multiplicar un arreglo y un int 
         for(String linea: funcionOriginal.values()){
             //Controlando los espacios 
             if(contadorEspacios(linea,bandera,space) > space ){
@@ -415,6 +421,41 @@ public class AnalisisSemantico {
                     funcionData.replace(linea, valueIniciador);
                 }
             }
+            if(Pattern.compile(exp10).matcher(linea).matches()){
+                String nameVariable = linea.substring(linea.indexOf("[a-zA-Z]") + 1, linea.indexOf("=")).trim();
+                String sumando2 = linea.substring(linea.indexOf("=") + 1, linea.indexOf("*")).trim();
+                String sumando1 = linea.substring(linea.indexOf("*") + 1).trim();
+                String valueSumando1 = "void", valueSumando2 = "void";
+                String expAux = "^[a-zA-Z]+\\[{1}[a-zA-Z]\\]{1}$";//Verifica que sea un arreglo si no se realiza otro tipo de tratamiento
+                if (Pattern.compile(expAux).matcher(sumando2).matches()) {//Si es un arreglo NECESITA UNA VALIDACION PARA EL CASO -> name_v= name_v
+                    //Verificamos que sea una variable como parametro
+                    if (funcionData.get("parametros").split(" ")[0].equals(sumando1)) {
+                        valueSumando1 = funcionData.get("parametros").split(" ")[1].substring(0, funcionData.get("parametros").split(" ")[1].indexOf("-")).trim();
+                    } else if (funcionData.get("parametros").split(" ")[0].equals(sumando2.substring(0, sumando2.indexOf("[")))) {
+                        valueSumando2 = funcionData.get("parametros").split(" ")[1].substring(0, funcionData.get("parametros").split(" ")[1].indexOf("-")).trim();
+                    }
+                    //Verificamos que la variable de sumando1 y sumando2 ya este instanciada 
+                    for (String key : funcionData.keySet()) {
+                        if (key.contains("=")) {
+                            if (key.substring(key.indexOf("[a-zA-Z]") + 1, key.indexOf("=")).trim().equals(sumando1) && !key.equals(linea)) {
+                                valueSumando1 = funcionData.get(key);
+                            } else if (key.substring(key.indexOf("[a-zA-Z]") + 1, key.indexOf("=")).trim().equals(sumando2.substring(0, sumando2.indexOf("["))) && !key.equals(linea)) {
+                                valueSumando2 = funcionData.get(key);
+                            }
+                        }
+                    }
+                    if (valueSumando1.equals("void") || valueSumando2.equals("void")) { //Si una variable no fue inicializada manda error
+                        errorMensaje("Una de las variables no esta inicializada: ", linea);
+                    }
+                    if (!valueSumando1.equals(valueSumando2)) {//Si son tipos de datos diferentes manda error 
+                        errorMensaje("Error de tipo de dato: ", linea);
+                    } else {
+                        funcionData.replace(linea, valueSumando1);
+                        auxLinea = linea;
+                        banderaLinea = true;
+                    }
+                }//TRATAMIENTO DIFERENTE 
+            }
         }
         
         variablesTipoFunciones.add(indiceFuncion, funcionData);
@@ -446,7 +487,15 @@ public class AnalisisSemantico {
         }
         return dataValue;
     }
-    
+        public void mostrarFunciones(){
+        for (HashMap<String, String> funcion : funcionesAll.values()) {
+            System.out.println(funcion);
+            System.out.println("\n");
+            for (String datos : funcion.values()) {
+                System.out.println(datos);
+            }
+        }
+    }
     public void mostrarDatos(){
         System.out.println("VARIABLES MAIN");
         for(String key: variablesTipo.keySet() ){
