@@ -55,18 +55,25 @@ public class Analisislexico {
                 itsFunction = false; 
                 String exp = "^((print\\({1}\\s*(?=[a-zA-Z\"])\"{1}[a-zA-Z\\s]+\"{1}\\s*(?=\\))\\){1})|([a-zA-Z0-9]+\\s*(?==)=\\s*(?=[a-zA-Z])input\\s*(?=\\()\\({1}\\s*(?=\")\"{1}[a-zA-Z0-9\\s:]+\"{1}\\s*(?=\\))\\){1})|([a-zA-Z]+\\({1}\\s*((\"[a-zA-Z\\s:]+\"{1}\\s*(?=,),(?=[a-zA-Z\\s])\\s*(?=[a-zA-Z])[a-zA-Z]+\\s*\\){1})|(\\s*\"[a-zA-Z:\\s]+\"\\s*\\){1})|(\\s*[a-zA-Z]+\\s*\\){1})))|([a-zA-Z]+=\\s*[a-zA-Z]+\\({1}((\\s*int\\s*\\({1}\\s*[a-zA-Z]+\\s*\\){1}\\s*\\){1})|(\\s*[a-zA-Z]+)\\s*\\))))$";
                 String exp2 ="^[a-zA-Z]+\\({1}\\s*(((([a-zA-Z]+\\s*,(?=[a-zA-Z\\s])\\s*)|[a-zA-Z]+\\s*)|(\"{1}[a-zA-Z\\s:]+\"{1}\\s*,\\s*(?!,\\)))|(\"{1}[a-zA-Z\\s:]+\"{1}\\s*)|)*)\\){1}$";
-                String exp3 = "^[a-zA-Z]+\\s*=\\s*[a-zA-Z]+\\({1}\\s*(((([a-zA-Z]+\\s*,(?=[a-zA-Z\\s])\\s*)|[a-zA-Z]+\\s*)|([a-zA-Z]+\\({1}\\s*[a-zA-Z]+\\s*\\){1}\\s*(,(?![,\\)])\\s*(?![,\\)]))*)|(\"{1}[a-zA-Z\\s:]+\"{1}\\s*,\\s*(?!,\\)))|(\"{1}[a-zA-Z\\s:]+\"{1}\\s*))*)\\){1}$";
+                String exp3 = "^[a-zA-Z]+\\s*=\\s*[a-zA-Z]+\\({1}\\s*(((([a-zA-Z0-9]+\\s*,(?=[a-zA-Z\\s])\\s*)|[a-zA-Z0-9]+\\s*)|([a-zA-Z0-9]+\\({1}\\s*[a-zA-Z0-9]+\\s*\\){1}\\s*(,(?![,\\)])\\s*(?![,\\)]))*)|(\"{1}[a-zA-Z\\s:]+\"{1}\\s*,\\s*(?!,\\)))|(\"{1}[a-zA-Z\\s:]+\"{1}\\s*))*)\\){1}$";
                 String exp4 = "^\\s{4}print\\s*\\({1}(((\\s*[a-zA-Z]+\\s*,\\s*(?=[a-zA-Z\"]))|(\\s*\"{1}\\s*[a-zA-Z\\s]+\\s*\"{1}\\s*,\\s*(?=[a-zA-Z\"])))+)?((\\s*[a-zA-Z]+\\s*)|(\\s*\"{1}\\s*[a-zA-Z\\s]+\\s*\"{1}\\s*))\\){1}$";
-                String exp5 = "^[a-zA-Z]+\\s*\\({1}(((\\s*[a-zA-Z]+\\s*,\\s*(?=[a-zA-Z\"]))|(\\s*\"{1}\\s*[a-zA-Z:\\s]+\\s*\"{1}\\s*,\\s*(?=[a-zA-Z\"])))+)?((\\s*[a-zA-Z]+\\s*)|(\\s*\"{1}\\s*[a-zA-Z:\\s]+\\s*\"{1}\\s*))\\){1}$";
+                String exp5 = "^[a-zA-Z]+\\s*\\({1}(((\\s*[a-zA-Z]+\\s*,\\s*(?=[a-zA-Z\"]))|(\\s*\"{1}\\s*[a-zA-Z:\\s]+\\s*\"{1}\\s*,\\s*(?=[a-zA-Z\"])))+)?((\\s*[a-zA-Z0-9]+\\s*)|(\\s*\"{1}\\s*[a-zA-Z:\\s]+\\s*\"{1}\\s*))\\){1}$";
                 String exp6 = "^[a-zA-Z]+\\s*=\\s*(?!input)[a-zA-Z]+\\s*\\({1}(((\\s*[a-zA-Z]+\\s*,\\s*(?=[a-zA-Z\"]))|(\\s*\"{1}\\s*[a-zA-Z:\\s]+\\s*\"{1}\\s*,\\s*(?=[a-zA-Z\"])))+)?((\\s*[a-zA-Z]+\\s*)|(\\s*\"{1}\\s*[a-zA-Z:\\s]+\\s*\"{1}\\s*))\\){1}$";
+                String exp7 = "^([a-zA-Z0-9]+\\s*(?==)=\\s*(?=[a-zA-Z])input\\s*(?=\\()\\({1}\\s*(?=\")\"{1}[a-zA-Z0-9\\s:]+\"{1}\\s*(?=\\))\\){1})$";// lo puse porque no se donde esta la regex del input que permite mas variables
+                String exp8 = "^[a-zA-Z0-9]+\\s*={1}\\s*(?!input)[a-zA-Z0-9]+\\s*\\({1}(((\\s*[a-zA-Z0-9]+\\s*\\({1}\\s*[a-zA-Z0-9]+\\s*\\){1}\\s*,\\s*(?=[a-zA-Z\"]))|(\\s*[a-zA-Z0-9]+\\s*,\\s*(?=[a-zA-Z\"]))|(\\s*\"{1}\\s*[a-zA-Z\\s]+\\s*\"{1}\\s*,\\s*(?=[a-zA-Z\"])))+)?((\\s*[a-zA-Z0-9]+\\s*\\({1}\\s*[a-zA-Z0-9]+\\s*\\){1}\\s*)|(\\s*[a-zA-Z0-9]+\\s*)|(\\s*\"{1}\\s*[a-zA-Z0-9\\s]+\\s*\"{1}\\s*))\\){1}$";;//Funciones con numerales al inicio de una variable
                 //Validamos que sea función
                 if(Pattern.compile("^def\\s+[a-zA-Z]+\\s*\\({1}(\\s*(?=[a-zA-Z\\)])(([a-zA-Z0-9]+(\\s*,(?=[a-zA-Z0-9]))?|(\\s*,\\s*(?=[a-zA-Z]))?)+|[a-zA-Z0-9]+)?)\\s*\\){1}:{1}\\s*$").matcher(data[i]).matches()){
                     scanFuncion(data[i]);
                     itsFunction = true;
-                }else if(Pattern.compile(exp6).matcher(data[i]).matches()|Pattern.compile(exp5).matcher(data[i]).matches()|Pattern.compile(exp4).matcher(data[i]).matches()|Pattern.compile(exp).matcher(data[i]).matches() || Pattern.compile(exp2).matcher(data[i]).matches()|| Pattern.compile(exp3).matcher(data[i]).matches()){ //Si no es función se agrega al codigo MAIN
-                        codigoMain.add(data[i]); //NECESITAMOS VALIDAR
+                }else if(Pattern.compile(exp8).matcher(data[i]).matches()||Pattern.compile(exp6).matcher(data[i]).matches()||Pattern.compile(exp5).matcher(data[i]).matches()|Pattern.compile(exp4).matcher(data[i]).matches()|Pattern.compile(exp).matcher(data[i]).matches() || Pattern.compile(exp2).matcher(data[i]).matches()|| Pattern.compile(exp3).matcher(data[i]).matches()){ //Si no es función se agrega al codigo MAIN
+                    if(!Pattern.compile(exp7).matcher(data[i]).matches() && data[i].contains("input")){
+                        mensajeErrorEspacio(i,"Error en el numero de parametros ");
+                        System.exit(0);
+                    }    
+                    codigoMain.add(data[i]); //NECESITAMOS VALIDAR
                 }else{
                     if(!data[i].isEmpty()){
+                        System.out.println(data[i]);
                         mensajeErrorEspacio(i,"Error en la función");
                         System.exit(0);
                     }
@@ -83,17 +90,20 @@ public class Analisislexico {
                     String exp2 = "^((\\s{4,8}[a-zA-Z]+\\s*(?=[a-z=])=\\s*(?=[a-z])((int)|(input))\\s*(?=[a-z\\(])\\({1}\\s*(?=[a-zA-Z])input\\s*(?=[\\(])\\({1}\\s*(?=[a-z\"])\"{1}[a-zA-Z\\s:]+\"{1}\\s*(?=[\\)])\\){1}\\s*(?=[\\)])\\){1})||(\\s{4,8}[a-zA-Z]+.append\\({1}\\s*[a-zA-Z]+\\s*\\){1}\\s*)||(\\s{4,8}return\\s*(?=[a-zA-Z])[a-zA-Z]+(?!\\S))|((\\s{4,8}[a-zA-Z]+\\s*(?==)=\\s*(?=[a-zA-Z])[a-zA-Z]+\\s*(?=[a-zA-Z\\+])\\+\\s*(?=[a-zA-Z\\+])[a-zA-Z]+\\[{1}[a-zA-Z]\\]{1}(?!\\S))))$";
                     String exp3 = "^((\\s{4,8}[a-zA-Z]+\\s*(?==)=\\s*(?=[a-zA-Z])[a-zA-Z]+\\[{1}[a-zA-Z0-9]\\]{1}[+*-][a-zA-Z]+)|(\\s{4,8}[a-zA-Z]+\\s*(?==)=\\s*(?=[a-zA-Z])[a-zA-Z]+\\[{1}\\s*(?=[a-zA-Z0-9\\]])[0-9]+\\s*(?=[a-zA-Z\\]])\\]{1}(?!\\S))|(\\s{4,8}for\\s*(?=[a-z])[a-zA-Z]\\s*(?=[a-z])in\\s*(?=[a-z])range\\({1}\\s*(?=[a-z])?[0-9]\\s*(?=[a-z])?,\\s*(?=[a-z])len\\({1}\\s*(?=[a-zA-Z])[a-zA-Z]+\\s*(?=\\))\\){2}:{1})|(\\s{4,8}[a-zA-Z]+\\s*(?==)=\\s*(?=[a-zA-Z\\+])[a-zA-Z]+\\[{1}[a-zA-Z]\\]{1}\\s*(?=[\\+\\*\\-])[+*-]\\s*(?=[a-zA-Z])[a-zA-Z]+)|(\\s{4,8}[a-zA-Z]+\\s*(?==)=[0-9]+))$";
                     //CAMBIE EN EXP3 9 POR 4,8 AL INICIO DE TODO 
-                    String exp5 = "^\\s{4}print\\s*\\({1}(((\\s*[a-zA-Z]+\\s*,\\s*(?=[a-zA-Z\"]))|(\\s*\"{1}\\s*[a-zA-Z\\s]+\\s*\"{1}\\s*,\\s*(?=[a-zA-Z\"])))+)?((\\s*[a-zA-Z]+\\s*)|(\\s*\"{1}\\s*[a-zA-Z\\s]+\\s*\"{1}\\s*))\\){1}$";//Evalua el print correctamente 
+                    String exp5 = "^\\s{4}print\\s*\\({1}(((\\s*[a-zA-Z]+\\s*,\\s*(?=[a-zA-Z\"]))|(\\s*\"{1}\\s*[a-zA-Z\\s]+\\s*\"{1}\\s*,\\s*(?=[a-zA-Z\"])))+)?((\\s*[a-zA-Z]+\\s*)|(\\s*\"{1}\\s*[a-zA-Z\\s]+\\s*\"{1}\\s*))\\){1}$";//Evalua el print correctamente ROBUSTO
                     //Evalua un return 
                     String exp4 = "^\\s{4,8}return\\s*(?=[a-zA-Z])\\w+$";
                     String exp4v2 = "^\\s{4,8}return\\s*(?=[a-zA-Z\"])\"{1}[a-zA-Z]+\"{1}$";
                     //Acepto un -> va = num_int
                     String exp6 = "^\\s{4,8}[a-zA-Z]+\\s*={1}\\s*[0-9]+$";
-                    if(Pattern.compile(exp4).matcher(data[i]).matches()||Pattern.compile(exp4v2).matcher(data[i]).matches()){
+                    //Evalua operacion vector * int
+                    String exp7 = "^\\s+[a-zA-Z]+\\s*={1}\\s*(([a-zA-Z]+\\[{1}[a-zA-Z]\\]{1}\\*{1}[a-zA-Z]+)|([a-zA-Z]+\\*{1}[a-zA-Z]+\\[{1}[a-zA-Z]\\]{1}))$";
+                    //valida -> varn = var
+                    String exp8 ="^\\s{4,8}[a-zA-Z]+\\s*={1}\\s*[a-zA-Z0-9]+$";
+                    if(Pattern.compile(exp4).matcher(data[i]).matches()||Pattern.compile(exp4v2).matcher(data[i]).matches()){//Evalua un return
                         itsFunction = false;
                     }
-                    
-                    if(Pattern.compile(exp6).matcher(data[i]).matches()||Pattern.compile(exp5).matcher(data[i]).matches() ||Pattern.compile(exp4v2).matcher(data[i]).matches() ||Pattern.compile(exp).matcher(data[i]).matches() || Pattern.compile(exp2).matcher(data[i]).matches() || Pattern.compile(exp3).matcher(data[i]).matches()){
+                    if(Pattern.compile(exp8).matcher(data[i]).matches()||Pattern.compile(exp7).matcher(data[i]).matches()||Pattern.compile(exp6).matcher(data[i]).matches()||Pattern.compile(exp5).matcher(data[i]).matches() ||Pattern.compile(exp4v2).matcher(data[i]).matches() ||Pattern.compile(exp).matcher(data[i]).matches() || Pattern.compile(exp2).matcher(data[i]).matches() || Pattern.compile(exp3).matcher(data[i]).matches()){
                         setLineas(contadorLinea,data[i]);
                         contadorLinea++;
                     }else{
@@ -122,9 +132,9 @@ public class Analisislexico {
             }
 
         }
-        mostrarFunciones();
+//        mostrarFunciones();
         //Pasamos al analisis semantico
-//        AnalisisSemantico semantica = new AnalisisSemantico(funcionesAll,codigoMain);
+        AnalisisSemantico semantica = new AnalisisSemantico(funcionesAll,codigoMain);
 //        semantica.primerAnalisis();
         return tokens;
     }
