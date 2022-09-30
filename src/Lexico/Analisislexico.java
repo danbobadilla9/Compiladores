@@ -60,7 +60,7 @@ public class Analisislexico {
                 String exp5 = "^[a-zA-Z]+\\s*\\({1}(((\\s*[a-zA-Z]+\\s*,\\s*(?=[a-zA-Z\"]))|(\\s*\"{1}\\s*[a-zA-Z:\\s]+\\s*\"{1}\\s*,\\s*(?=[a-zA-Z\"])))+)?((\\s*[a-zA-Z0-9]+\\s*)|(\\s*\"{1}\\s*[a-zA-Z:\\s]+\\s*\"{1}\\s*))\\){1}$";
                 String exp6 = "^[a-zA-Z]+\\s*=\\s*(?!input)[a-zA-Z]+\\s*\\({1}(((\\s*[a-zA-Z]+\\s*,\\s*(?=[a-zA-Z\"]))|(\\s*\"{1}\\s*[a-zA-Z:\\s]+\\s*\"{1}\\s*,\\s*(?=[a-zA-Z\"])))+)?((\\s*[a-zA-Z]+\\s*)|(\\s*\"{1}\\s*[a-zA-Z:\\s]+\\s*\"{1}\\s*))\\){1}$";
                 String exp7 = "^([a-zA-Z0-9]+\\s*(?==)=\\s*(?=[a-zA-Z])input\\s*(?=\\()\\({1}\\s*(?=\")\"{1}[a-zA-Z0-9\\s:]+\"{1}\\s*(?=\\))\\){1})$";// lo puse porque no se donde esta la regex del input que permite mas variables
-                String exp8 = "^[a-zA-Z0-9]+\\s*={1}\\s*(?!input)[a-zA-Z0-9]+\\s*\\({1}(((\\s*[a-zA-Z0-9]+\\s*\\({1}\\s*[a-zA-Z0-9]+\\s*\\){1}\\s*,\\s*(?=[a-zA-Z\"]))|(\\s*[a-zA-Z0-9]+\\s*,\\s*(?=[a-zA-Z\"]))|(\\s*\"{1}\\s*[a-zA-Z\\s]+\\s*\"{1}\\s*,\\s*(?=[a-zA-Z\"])))+)?((\\s*[a-zA-Z0-9]+\\s*\\({1}\\s*[a-zA-Z0-9]+\\s*\\){1}\\s*)|(\\s*[a-zA-Z0-9]+\\s*)|(\\s*\"{1}\\s*[a-zA-Z0-9\\s]+\\s*\"{1}\\s*))\\){1}$";;//Funciones con numerales al inicio de una variable
+                String exp8 = "^[a-zA-Z0-9]+\\s*={1}\\s*(?!input)[a-zA-Z0-9]+\\s*\\({1}(((\\s*[a-zA-Z0-9]+\\s*\\({1}\\s*[a-zA-Z0-9]+\\s*\\){1}\\s*,\\s*(?=[a-zA-Z\"]))|(\\s*[a-zA-Z0-9]+\\s*,\\s*(?=[a-zA-Z\"]))|(\\s*\"{1}\\s*[a-zA-Z0-9\\s]+\\s*\"{1}\\s*,\\s*(?=[a-zA-Z\"])))+)?((\\s*[a-zA-Z0-9]+\\s*\\({1}\\s*[a-zA-Z0-9]+\\s*\\){1}\\s*)|(\\s*[a-zA-Z0-9]+\\s*)|(\\s*\"{1}\\s*[a-zA-Z0-9\\s]+\\s*\"{1}\\s*))\\){1}$";;//Funciones con numerales al inicio de una variable
                 //Validamos que sea función
                 if(Pattern.compile("^def\\s+[a-zA-Z]+\\s*\\({1}(\\s*(?=[a-zA-Z\\)])(([a-zA-Z0-9]+(\\s*,(?=[a-zA-Z0-9]))?|(\\s*,\\s*(?=[a-zA-Z]))?)+|[a-zA-Z0-9]+)?)\\s*\\){1}:{1}\\s*$").matcher(data[i]).matches()){
                     scanFuncion(data[i]);
@@ -135,7 +135,6 @@ public class Analisislexico {
 //        mostrarFunciones();
         //Pasamos al analisis semantico
         AnalisisSemantico semantica = new AnalisisSemantico(funcionesAll,codigoMain);
-//        semantica.primerAnalisis();
         return tokens;
     }
     

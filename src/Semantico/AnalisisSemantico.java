@@ -5,6 +5,7 @@
  */
 package Semantico;
 
+import Traductor.Interprete;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -33,7 +34,9 @@ public class AnalisisSemantico {
         this.funcionesReservadas = new String[][]{{"print","Void"},{"input","string"},{"int","int"}};
         primerAnalisis();
         segundoAnalisis();
-        mostrarDatos();
+//        mostrarDatos();
+          Interprete newInterprete = new Interprete(funcionesAll, codigoMain, variablesTipo, variablesTipoFunciones, sobrecargaFunciones);
+          newInterprete.interpretacion();
     }
     
     //El primer analisis se basa en obtener datos de funciones reservadas
@@ -122,9 +125,11 @@ public class AnalisisSemantico {
                             initTablaValores(funcion, nameFuncion); //Asignando Void a las lineas
                             //Contando el numero de parametros y retorno
                             if (!bandera) {
+                                
                                 configuracionParametros(nameFuncion, funcion.get("parametros"), codigoMain[i], funcion.get(String.valueOf(funcion.size() - 2)), false);
+                                
                                 variablesTipo.put(codigoMain[i].substring(0, codigoMain[i].indexOf("=")).trim(),getValueFuncion(nameFuncion));
-                            } else {
+                            } else { // Funcion repetida 
                                 //Validamos que los parametros sean los mismos a la funcion ya instanciada inicializando una bandera 
                                 this.banderaValidarParametros = true;
                                 configuracionParametros(nameFuncion,funcion.get("parametros"),codigoMain[i],funcion.get(String.valueOf(funcion.size()-2)),false);
@@ -255,40 +260,42 @@ public class AnalisisSemantico {
        asignarTipo=asignarTipo.replaceAll(" ", "");
        if(asignarTipo.endsWith(",")){
            if(asignarTipo.lastIndexOf(",")!= 0){
-                asignarTipo= asignarTipo.substring(0,asignarTipo.lastIndexOf(",")-1);
+                asignarTipo= asignarTipo.substring(0,asignarTipo.lastIndexOf(","));
            }
        }
-        
         if(this.banderaValidarParametros){//La funcion ya fue instanciada antes
             String getParametros = "";
+            String retorno = "";
             for (HashMap<String, String> data : variablesTipoFunciones) {//Buscamos los parametros de la funcion ya instanciada
                 for (String key : data.keySet()) {
                     if(key.equals(nameFuncion)){
                         getParametros = data.get("parametros").split(" ")[1];
+                        retorno = " RETURN "+data.get(key);
                     }
                 }
             }
             //Buscamos que la funcion ya no este sobrecargada antes 
             if(!sobrecargaFunciones.contains(nameFuncion+" "+asignarTipo)){
                 if(!getParametros.trim().equals(asignarTipo.trim())){//Si los parametros son diferentes 
-                    sobrecargaFunciones.add(nameFuncion+" "+getParametros);
+                    sobrecargaFunciones.add(nameFuncion+" "+getParametros+retorno);
                 }    
             }else{
-             sobrecargaFunciones.remove(nameFuncion+" "+asignarTipo);
-             sobrecargaFunciones.add(nameFuncion+" "+getParametros);
+             sobrecargaFunciones.remove(nameFuncion+" "+asignarTipo+retorno);
+             sobrecargaFunciones.add(nameFuncion+" "+getParametros+retorno);
             }
             this.banderaValidarParametros = false;
             
         }
        //Asignamos el tipo de dato que les corresponde
        String newValue = paramesFunc+" "+asignarTipo;
-//        System.out.println("newValue->"+newValue+" Linea->"+lineaCodigo);
         variablesTipoFunciones.forEach(buscador -> {
             if (buscador.containsKey(nameFuncion)) {
                 buscador.remove(paramesFunc);
                 buscador.put("parametros", newValue);
             }
         });
+                
+
         analisisFuncion(nameFuncion,lineaCodigo);
         
     }
@@ -313,7 +320,7 @@ public class AnalisisSemantico {
             }
         }
         variablesTipoFunciones.remove(indiceFuncion);
-        System.out.println("PARAMETROS ->: "+funcionData.get("parametros")+" LINEA->"+lineaCodigo);
+//        System.out.println("PARAMETROS ->: "+funcionData.get("parametros")+" LINEA->"+lineaCodigo);
         parametros = funcionData.get("parametros").split(" ");
         //INICIANDO EL ANALISIS
         //Primero eliminaremos las lineas de codigo como name, parametros ya que no nos interesan
@@ -325,7 +332,7 @@ public class AnalisisSemantico {
         String auxLinea = "";//Guardamos la linea cuando tenemos algo como -> name_va= name_va
         boolean banderaLinea = false;
         String exp1 = "^\\s+print\\({1}.+$"; //Funciones ya conocidas 
-        String exp2 = "^\\s+[a-zA-Z]+\\s*={1}\\s*\\[{1}\\]{1}$"; //Se detecta que tenemos una asignacion de arreglo
+        String exp2 = "^\\s+[a-zA-Z]+\\s*={1}\\s*\\[{1}\\]{1}$"; //Se detecta que tenemos una creacion de variable de tipo arreglo
         String exp3 = "^\\s+for[a-zA-Z\\s]+in\\s+range.+$"; //Controlador de un for
         String exp4 = "^\\s+[a-zA-Z]+\\s*={1}\\s*((int\\s*\\({1}.+)|(input\\s*\\({1}.+))$"; // Creacion de variable con funciones del main
         String exp5 = "^\\s*[a-zA-Z]+\\.{1}append+\\({1}\\s*[a-zA-Z]+\\s*\\){1}$"; // Aggregando elementos al array
@@ -347,6 +354,8 @@ public class AnalisisSemantico {
             }
             if(Pattern.compile(exp2).matcher(linea).matches()){ //Si es un arreglo
                 funcionData.replace(linea, "Void-Array");
+                String nameVariable = linea.substring(linea.indexOf("[a-zA-Z]") + 1, linea.indexOf("=")).trim();
+                controlReturn.put(nameVariable,"Void-Array");
             }
             //Iniciamos el proceso de recorrer un for, validacion de identacion
             if(Pattern.compile(exp3).matcher(linea).matches()){
@@ -386,6 +395,7 @@ public class AnalisisSemantico {
                                 errorMensaje("No se a inicializado la variable: "+nameParametro+" ", linea);
                             String valueArray = funcionData.get(key).replace("Void", valueParametro);
                             funcionData.replace(key, valueArray);
+                            controlReturn.put(nameVariable,valueArray);
                         }
                     }
                 }
@@ -393,30 +403,42 @@ public class AnalisisSemantico {
             if(Pattern.compile(exp6).matcher(linea).matches()){//Control del Return
                 String nameVariable = linea.substring(linea.indexOf("n")+1, linea.length()).trim();
                 String valueParametro = "void";
-                for (String key : funcionData.keySet()) {
-                    if (key.contains("=")) {
-                        if(banderaLinea){ //BanderaLinea indica si la variable volvio a ser inicializada 
-                            if (key.substring(key.indexOf("[a-zA-Z]") + 1, key.indexOf("=")).trim().equals(nameVariable) && key.equals(auxLinea)) {
-                                if (!funcionData.get(key).trim().equals(valueParametro)) {
-                                    valueParametro = funcionData.get(key);
-                                    banderaLinea = false; 
-                                }else {
-                                    errorMensaje("No se a inicializado la variable: " + nameVariable + " ", linea);
-                                }
-                            }   
-                        }else if (key.substring(key.indexOf("[a-zA-Z]") + 1, key.indexOf("=")).trim().equals(nameVariable) && auxLinea.isEmpty()) {
-                            if (!funcionData.get(key).trim().equals(valueParametro)) {
-                                valueParametro = funcionData.get(key);
-                            }else {
-                                errorMensaje("No se a inicializado la variable: " + nameVariable + " ", linea);
-                            }
-                        }
-                    }
+                //Verificamos que se encuentre en los parametros la variable a retornar 
+                if(funcionData.get("parametros").split(" ")[0].contains(nameVariable.trim())){
+                    valueParametro = getParamValues(funcionData.get("parametros").split(" "), nameVariable);
+                }else if(controlReturn.containsKey(nameVariable)){//Buscamos dentro de la funcion 
+                    valueParametro = controlReturn.get(nameVariable);
+                }else{ //Manda error si no se encontro la variable
+                    errorMensaje("La variable: "+nameVariable+" No ah sido inicializada ", linea);
                 }
+                
+//                for (String key : funcionData.keySet()) {
+//                    if (key.contains("=")) {
+//                        if(banderaLinea){ //BanderaLinea indica si la variable volvio a ser inicializada 
+//                            if (key.substring(key.indexOf("[a-zA-Z]") + 1, key.indexOf("=")).trim().equals(nameVariable) && key.equals(auxLinea)) {
+//                                if (!funcionData.get(key).trim().equals(valueParametro)) {
+//                                    valueParametro = funcionData.get(key);
+//                                    banderaLinea = false; 
+//                                }else {
+//                                    errorMensaje("No se a inicializado la variable: " + nameVariable + " ", linea);
+//                                }
+//                            }   
+//                        }else if (key.substring(key.indexOf("[a-zA-Z]") + 1, key.indexOf("=")).trim().equals(nameVariable) && auxLinea.isEmpty()) {
+//                            if (!funcionData.get(key).trim().equals(valueParametro)) {
+//                                valueParametro = funcionData.get(key);
+//                            }else {
+//                                errorMensaje("No se a inicializado la variable: " + nameVariable + " ", linea);
+//                            }
+//                        }
+//                    }
+//                }
+                
                 funcionData.replace(nameFuncion, valueParametro);
             }
             if(Pattern.compile(exp7).matcher(linea).matches()){
                 funcionData.replace(linea, "int");
+                String nameVariable = linea.substring(linea.indexOf("[a-zA-Z]") + 1, linea.indexOf("=")).trim();
+                controlReturn.put(nameVariable,"int");
             }
             if(Pattern.compile(exp8).matcher(linea).matches()){
                 String nameVariable = linea.substring(linea.indexOf("[a-zA-Z]") + 1, linea.indexOf("=")).trim();
@@ -455,11 +477,12 @@ public class AnalisisSemantico {
                         errorMensaje("Una de las variables no esta inicializada: ", linea);
                     }
                     if(!valueSumando1.equals(valueSumando2)){//Si son tipos de datos diferentes manda error 
-                        mostrarDatos();
+                        System.out.println("VAL1->"+valueSumando1+"<-VAL2->"+valueSumando2);
                         errorMensaje("Error de tipo de dato: ", linea);
                     }else{
                         funcionData.replace(linea, valueSumando1);
                         auxLinea = linea;
+                        controlReturn.put(nameVariable,valueSumando1);
                         banderaLinea = true;
                     }
                 }//TRATAMIENTO DIFERENTE 
@@ -488,6 +511,7 @@ public class AnalisisSemantico {
                     errorMensaje("La variable: "+iniciador+" No esta instanciada ", linea);
                 }else{
                     funcionData.replace(linea, valueIniciador);
+                    controlReturn.put(iniciador,valueIniciador);
                 }
             }
             if(Pattern.compile(exp10).matcher(linea).matches()){//Operacion * entre vector y int
@@ -529,6 +553,7 @@ public class AnalisisSemantico {
                         errorMensaje("Error de tipo de dato: ", linea);
                     } else {
                         funcionData.replace(linea, valueSumando1);
+                        controlReturn.put(nameVariable,valueSumando1);
                         auxLinea = linea;
                         banderaLinea = true;
                     }
@@ -537,6 +562,7 @@ public class AnalisisSemantico {
             if(Pattern.compile(exp11).matcher(linea).matches()){
                 //Buscamos el arreglo dentro de la funcion primero dentro del parametro 
                 String iniciador = linea.substring(linea.indexOf("=") + 1).trim();
+                String nameVariable = linea.substring(linea.indexOf("[a-zA-Z]") + 1, linea.indexOf("=")).trim();
                 String valueIniciador = "void";
                 if (funcionData.get("parametros").split(" ")[0].contains(iniciador)) { //Buscamos si es un parametro de la funcion 
                     String aux = getParamValues(funcionData.get("parametros").split(" "), iniciador);
@@ -557,10 +583,10 @@ public class AnalisisSemantico {
                     errorMensaje("La variable: " + iniciador + " No esta instanciada ", linea);
                 } else {
                     funcionData.replace(linea, valueIniciador);
+                    controlReturn.put(nameVariable.trim(),valueIniciador);
                 }
             }
         }
-        
         variablesTipoFunciones.add(indiceFuncion, funcionData);
     }
     
