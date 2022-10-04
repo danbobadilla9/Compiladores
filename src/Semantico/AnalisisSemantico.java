@@ -266,23 +266,40 @@ public class AnalisisSemantico {
         if(this.banderaValidarParametros){//La funcion ya fue instanciada antes
             String getParametros = "";
             String retorno = "";
+            String valueFun = "";
             for (HashMap<String, String> data : variablesTipoFunciones) {//Buscamos los parametros de la funcion ya instanciada
                 for (String key : data.keySet()) {
                     if(key.equals(nameFuncion)){
                         getParametros = data.get("parametros").split(" ")[1];
                         retorno = " RETURN "+data.get(key);
+                        valueFun = data.get(nameFuncion);
                     }
                 }
             }
-            //Buscamos que la funcion ya no este sobrecargada antes 
-            if(!sobrecargaFunciones.contains(nameFuncion+" "+asignarTipo)){
-                if(!getParametros.trim().equals(asignarTipo.trim())){//Si los parametros son diferentes 
-                    sobrecargaFunciones.add(nameFuncion+" "+getParametros+retorno);
-                }    
-            }else{
-             sobrecargaFunciones.remove(nameFuncion+" "+asignarTipo+retorno);
-             sobrecargaFunciones.add(nameFuncion+" "+getParametros+retorno);
+            //La forma en que se guaradara sera la siguiente nameFun parametros,valores RETORNO value
+            
+            String valoresActuales = nameFuncion.trim()+" "+getParametros.trim()+" "+"RETORNO"+" "+valueFun.trim(); //Valor actual de la funcion
+            String valorNuevo = nameFuncion.trim()+" "+asignarTipo.trim()+" "+"RETORNO"+" "+valueFun.trim();
+
+            if(!valoresActuales.equals(valorNuevo)){//Preguntamos si la funcion tiene los mismos parametros que se van a agregar  
+                                //Preguntamos si ya contiene ese valor la List
+                if(!sobrecargaFunciones.contains(valorNuevo)){
+                    sobrecargaFunciones.add(valoresActuales);
+                }else{
+                    sobrecargaFunciones.remove(valorNuevo);
+                    sobrecargaFunciones.add(valoresActuales);
+                }
             }
+//            System.out.println("ACAAA->"+valoresActuales+"NUEVADATA->"+valorNuevo);
+//            //Buscamos que la funcion ya no este sobrecargada antes 
+//            if(!sobrecargaFunciones.contains(nameFuncion.trim()+" "+asignarTipo.trim())){
+//                if(!getParametros.trim().equals(asignarTipo.trim())){//Si los parametros son diferentes 
+//                    sobrecargaFunciones.add(nameFuncion+" "+getParametros+retorno);
+//                }    
+//            }else{
+//             sobrecargaFunciones.remove(nameFuncion+" "+asignarTipo+retorno);
+//             sobrecargaFunciones.add(nameFuncion+" "+getParametros+retorno);
+//            }
             this.banderaValidarParametros = false;
             
         }
