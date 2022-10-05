@@ -40,8 +40,9 @@ public class Interprete {
     
     public void interpretacion (){
         //Agregamos las librerias de C++
-        setLibrerias("#include<iostream>");
-        setLibrerias("using namespace std");
+        setLibrerias("#include <iostream>");
+        setLibrerias("#include <vector>");
+        setLibrerias("using namespace std;");
         
         //Creamos la clase int main(){}
         setCodigoMain("int main(){\n");
@@ -79,7 +80,12 @@ public class Interprete {
         //Expresiones regulares dentro de las funciones
         String exp5 = "^\\s*[a-zA-Z0-9]+\\s*=\\s*\\[\\]$"; //Instancia de un arreglo de la forma -> var = []
         String exp6 = "^\\s*for\\s*[a-zA-Z0-9]\\s*in\\s*range\\s*\\({1}.+$"; //Evalua un for
-        
+        String exp7 = "^\\s*.+\\s*={1}\\s*int\\s*\\({1}\\s*input\\s*\\({1}.+$"; //Evalua una conversion de int cuando tiene adentro un input 
+        String exp8 = "^\\s*.+\\.append\\s*.+$"; //Evalua un append a una funcion
+        String exp9 = "^\\s*[a-zA-Z0-9]+\\s*={1}\\s*[0-9]+$"; //Evalua una instancia de int de la forma -> variable = 0
+        String exp10 = "^\\s*.+\\s*={1}\\s*[a-zA-Z0-9]+\\s*\\[{1}[a-zA-Z0-9]+\\]{1}(?!(\\+|\\*))$"; // Evalua la instancia de una variable a partir de un arreglo
+        String exp11 = "^\\s*[a-zA-Z0-9]+\\s*={1}\\s*.+(\\+|\\*).+$"; // Evalua operaciones de un int y un arreglo
+        String exp12 = "^\\s*return\\s*.+$"; //Evalua los retornos
         //Auxiliares para evaluar un for
         
         if(Pattern.compile(exp1).matcher(linea).matches()){
@@ -117,11 +123,38 @@ public class Interprete {
             return;
         }
         
-        //Contador de espacios para reventar el for
+        if(Pattern.compile(exp7).matcher(linea).matches()){
+            setVariableRepetida(linea.substring(0,linea.indexOf("=")),linea,bandera);
+        }
+        
+        if(Pattern.compile(exp8).matcher(linea).matches()){
+            setAppendVector(linea,bandera);
+        }
+        
+        if(Pattern.compile(exp9).matcher(linea).matches()){
+            setVariableRepetida(linea.substring(0,linea.indexOf("=")),linea,bandera);
+        }
+        
+        if(Pattern.compile(exp10).matcher(linea).matches()){
+            setVariableRepetida(linea.substring(0,linea.indexOf("=")),linea,bandera);
+        }
+        
+        if(Pattern.compile(exp11).matcher(linea).matches()){
+            setVariableRepetida(linea.substring(0,linea.indexOf("=")),linea,bandera);
+        }
+                //Contador de espacios para reventar el for
         if((contadorEspacios(linea) < this.space) && !bandera && this.space > 5){
-            setAuxiliarFunciones("}");
+            setAuxiliarFunciones(genenerarEspaciado("}"));
             this.space = this.space - 4;
         }
+        
+        if(Pattern.compile(exp12).matcher(linea).matches()){
+            setRetorno(linea.substring(linea.indexOf("n")+1).trim() ,bandera);
+//            setRetorno(linea ,bandera);
+            return;
+        }
+        
+
     }
     
     public void mostrarDatosFunciones(){
@@ -148,11 +181,9 @@ public class Interprete {
     }
     
     public void mostrarData(){
-        System.out.println("LIBRERIAS \n");
         for(String linea: encabezadoLibreria){
             System.out.println(linea);
         }
-        System.out.println("\n CODIGO MAIN\n");
         for(String linea: codigoPrincipal){
             System.out.println(linea);
         }
@@ -162,7 +193,7 @@ public class Interprete {
         linea = linea.substring(linea.indexOf("(")+1,linea.lastIndexOf(")"));
         if(linea.contains(",")){
             String[] lineas = linea.split(",");
-            String aux = "count";
+            String aux = "cout";
             for(String parametro: lineas){
                 if(parametro.contains("\"")){
                     aux += " << "+ parametro+" ";
@@ -179,9 +210,9 @@ public class Interprete {
             
         }else{
             if(bandera){
-                setCodigoMain("count << "+linea+" << \" \\n \" ;");
+                setCodigoMain("cout << "+linea+" << \" \\n \" ;");
             }else{
-                setAuxiliarFunciones("    count << "+linea+" <<\" \\n \";");
+                setAuxiliarFunciones("    cout << "+linea+" <<\" \\n \";");
             }
             
         }
@@ -201,13 +232,31 @@ public class Interprete {
             variablesTipoFuncion.putAll(getDataFuniones(this.auxiliarNameFuncion));
             variablesTipos = variablesTipoFuncion;
         }
+        String auxKey = "";
+        if(contadorEspacios(lineaCodigo) > 4){
+            for(String key: variablesRepetidas.keySet()){
+                if(key.trim().equals(variable.trim())){
+                    auxKey = key;
+                    variable = lineaCodigo;
+                }
+            }
+        }
         //Primero Preguntamos si ya esta registrada
-        if(variablesRepetidas.containsKey(variable)){
-            String tipoDato = variablesTipos.get(variable).split(",")[Integer.valueOf(variablesRepetidas.get(variable).get("i")+1)];
-            String tipoDato2 = variablesTipos.get(variable).split(",")[Integer.valueOf(variablesRepetidas.get(variable).get("i"))];
-            HashMap<String,String> addVariable = variablesRepetidas.get(variable);
+        if(variablesRepetidas.containsKey(variable) || variablesRepetidas.containsKey(auxKey)){
+            String tipoDato = "";
+            String tipoDato2 = "";
+            HashMap<String,String> addVariable = new HashMap<>();
+            if(variablesTipos.get(variable).contains(",")){
+                tipoDato = variablesTipos.get(variable).split(",")[Integer.valueOf(variablesRepetidas.get(variable).get("i")+1)];
+                tipoDato2 = variablesTipos.get(variable).split(",")[Integer.valueOf(variablesRepetidas.get(variable).get("i"))];
+                addVariable = variablesRepetidas.get(variable);
+            }else{
+                tipoDato = variablesTipos.get(variable);
+                tipoDato2 = variablesTipos.get(variable);
+                addVariable = variablesRepetidas.get(auxKey);
+            }
             if(addVariable.containsKey(tipoDato)){//Verificamos que el tipo de dato ya este registrado
-                String nameVariable = addVariable.get("oldName") +lineaCodigo.substring(lineaCodigo.indexOf("=")+1);
+                String nameVariable = addVariable.get("oldName") +lineaCodigo.substring(lineaCodigo.indexOf("="));
                 if(bandera){
                     setCodigoMain(nameVariable+";");
                 }else{
@@ -219,6 +268,7 @@ public class Interprete {
                 replaceData.put(tipoDato, newName);
                 replaceData.replace("i", String.valueOf(Integer.valueOf(variablesRepetidas.get(variable).get("i"))+1));
                 replaceData.replace("oldName", variablesRepetidas.get(variable).get(tipoDato2));
+                replaceData.replace("newName", newName);
                 variablesRepetidas.replace(variable, replaceData);
                 instanciarVariables(variable,bandera,lineaCodigo);
                 String aux = "";
@@ -228,7 +278,10 @@ public class Interprete {
                     }else{
                         aux = lineaCodigo.substring(lineaCodigo.indexOf("=")+1).replaceAll("Datos", replaceData.get("oldName"));
                     }
-                    setCodigoMain(newName+"="+aux);
+                    if(aux.contains("int")){
+                        aux = aux.replace("int", "stoi");
+                    }
+                    setCodigoMain(newName+"="+aux+";");
                 }else{
                     setAuxiliarFunciones(lineaCodigo+";");//Escribe la linea de codigo
                 }
@@ -243,18 +296,61 @@ public class Interprete {
             }
             addVariable.put("i", "0");
             addVariable.put("oldName", variable);
+            addVariable.put("newName", variable);
             variablesRepetidas.put(variable, addVariable);
             instanciarVariables(variable,bandera,lineaCodigo);
             if(bandera){
-                setCodigoMain(lineaCodigo+";");
+                if(lineaCodigo.contains("input")){
+                    String coutData = lineaCodigo.substring(lineaCodigo.indexOf("\""),lineaCodigo.lastIndexOf("\"")+1);
+                    String cinData = lineaCodigo.substring(0,lineaCodigo.indexOf("="));
+                    setCodigoMain(genenerarEspaciado("cout << "+coutData.trim()+";"));
+                    setCodigoMain(genenerarEspaciado("cin >> "+cinData.trim()+";"));
+                }else{
+                    setCodigoMain(evaluarParametrosPasados(lineaCodigo, variable));
+                }
             }else{
-                setAuxiliarFunciones(lineaCodigo+";");
+                if(lineaCodigo.contains("int(input(")){
+                    String coutData = lineaCodigo.substring(lineaCodigo.indexOf("\""),lineaCodigo.lastIndexOf("\"")+1);
+                    String cinData = lineaCodigo.substring(0,lineaCodigo.indexOf("="));
+                    setAuxiliarFunciones(genenerarEspaciado("cout << "+coutData.trim()+";"));
+                    setAuxiliarFunciones(genenerarEspaciado("cin >> "+cinData.trim()+";"));
+                    
+                }else{
+                    if(!lineaCodigo.contains("[]")){
+                        setAuxiliarFunciones(lineaCodigo+";");
+                    }
+                }
             }
             
         }
         
     }
-    
+    public String evaluarParametrosPasados(String lineaCodigo,String variable){
+        HashMap<String,HashMap<String,String>> variablesRepetidas = new HashMap<>();
+        variablesRepetidas = variableRepetida;
+        String lineaAuxiliar = lineaCodigo.substring(lineaCodigo.indexOf("(")+1,lineaCodigo.lastIndexOf(")"));
+        String lineaRetornar = "";
+        if(lineaAuxiliar.contains(",")){
+            String [] dividido = lineaAuxiliar.split(",");
+            lineaRetornar+=lineaCodigo.substring(0,lineaCodigo.indexOf("(")+1);
+            for(String data: dividido){
+                if(data.contains("\"")){
+                    lineaRetornar+=data+",";
+                }else{
+                    lineaRetornar+=variablesRepetidas.get(data).get("newName")+",";
+                }
+            }
+            if(lineaRetornar.endsWith(",")){
+                lineaRetornar.substring(0,lineaRetornar.lastIndexOf(","));
+            }
+            lineaRetornar+=");";
+        }else if(lineaAuxiliar.contains("\"")){
+            lineaRetornar = lineaCodigo;
+        }else{
+            lineaRetornar = lineaCodigo.substring(0,lineaCodigo.indexOf("(")+1)+variablesRepetidas.get(lineaAuxiliar).get("newName")+");";
+        }
+        return lineaRetornar;
+    }
     public void instanciarVariables(String nameVariable,boolean bandera,String lineaCodigo){ //Escribe el tipo que es 
         
         //HasMap que nos ayudaran a recorrer los arreglos
@@ -359,7 +455,7 @@ public class Interprete {
         for (int i : funcionesAll.keySet()) {
             data1.putAll(funcionesAll.get(i));
             if(data1.get("name").equals(nameFuncion)){
-                data2.putAll(data1); 
+                data2.putAll(funcionesAll.get(i)); 
                 return data2;
             }
             
@@ -380,7 +476,7 @@ public class Interprete {
         String[] dataParametro = dataParametros.split(" ")[1].split(",");
         for(int i = 0; i < dataParametro.length; i++){
             if(dataParametro[i].contains("-")){
-                lineaInstancia += "vector<"+dataParametro[i].substring(0,dataParametro[i].indexOf("-"))+"> "+nameParametros[i]+"[],";
+                lineaInstancia += "vector<"+dataParametro[i].substring(0,dataParametro[i].indexOf("-"))+"> "+nameParametros[i]+",";
             }else{
                 lineaInstancia += dataParametro[i]+" "+nameParametros[i]+",";
             }
@@ -399,15 +495,12 @@ public class Interprete {
         if(array.contains("len(")){
             array = array.substring(array.indexOf("(")+1,array.indexOf(")"))+".size()";
         }
-        String conversor = "for(int "+variableIteradora+"="+valorVariableIteradora+";"+valorVariableIteradora+"<"+array+";"+variableIteradora+"++){";
+        String conversor = "for(int "+variableIteradora+"="+valorVariableIteradora+";"+variableIteradora+"<"+array+";"+variableIteradora+"++){";
         if(bandera){
             setCodigoMain(conversor);
         }else{
-            String spacios = "";
-            for(int i = 0; i< this.space-4; i++){
-                spacios+=" ";
-            }
-            setAuxiliarFunciones(spacios+conversor);
+            conversor = genenerarEspaciado(conversor);
+            setAuxiliarFunciones(conversor);
         }
     }
     
@@ -423,4 +516,56 @@ public class Interprete {
         return contador;
     }
     
+    public String genenerarEspaciado(String linea){
+        String spacios = "";
+        for (int i = 0; i < this.space-4; i++) {
+            spacios += " ";
+        }
+        spacios += linea;
+        return spacios;
+    }
+    
+    public void setAppendVector(String linea,boolean bandera){
+        //HasMap que nos ayudaran a recorrer los arreglos
+        HashMap<String, HashMap<String, String>> variablesRepetidas = new HashMap<>();
+        HashMap<String, String> variablesTipos = new HashMap<>();
+        //Instanciamos los HasMap
+        if (bandera) {//Si bandera es true estamos en el main
+            variablesRepetidas = variableRepetida;
+            variablesTipos = variablesTipo;
+        } else {//Estamos en la funcion
+            variablesRepetidas = variableRepetidaFunciones;
+            variablesTipoFuncion.putAll(getDataFuniones(this.auxiliarNameFuncion));
+            variablesTipos = variablesTipoFuncion;
+        }
+        String oldName = "";
+        String oldNameParametro = "";
+        //Primero encontramos la variable a la que estamos agregando
+        for(String key: variablesRepetidas.keySet()){
+            if(key.trim().equals(linea.substring(0,linea.indexOf(".")).trim())){
+                oldName = variablesRepetidas.get(key).get("oldName");
+            }
+            if (key.trim().equals(linea.substring(linea.indexOf("(")+1, linea.indexOf(")")).trim())) {
+                oldNameParametro = variablesRepetidas.get(key).get("oldName");
+            }
+        }
+        if(bandera){
+            setCodigoMain(oldName+".push_back("+oldNameParametro+");");
+        }else{
+            setAuxiliarFunciones(genenerarEspaciado(oldName.trim()+".push_back("+oldNameParametro.trim()+");"));
+        }
+    }
+    
+    public void setRetorno(String variable,boolean bandera){
+        //Primero hallamos la variable repetida
+        HashMap<String,String> data2 = new HashMap<>();
+        for(String key: variableRepetidaFunciones.keySet()){
+            if(key.trim().equals(variable.trim())){//Variable repetida que se retornara
+                //Ahora obtenemos el tipo de regreso de la funcion
+                data2.putAll(getDataFuniones(this.auxiliarNameFuncion));
+                String datosVariable = data2.get(this.auxiliarNameFuncion);
+                setAuxiliarFunciones(genenerarEspaciado("return "+variableRepetidaFunciones.get(key).get(datosVariable).trim())+";");
+            }
+        }
+    }
 }
