@@ -30,6 +30,10 @@ public class Analisislexico {
         Archivo leerTxt = new Archivo("C:\\Users\\user\\Documents\\NetBeansProjects\\Compiladores\\src\\LoadFile\\CodigoPy.txt");
         //Obteniendo los datos en forma de Arreglo de String
         data = leerTxt.getData().stream().toArray(String[]::new);
+        for(String linea: data){
+            System.out.println(linea);
+        }
+        System.exit(0);
         for(int i = 0; i<data.length; i++){
             contadorEspacios = 0;
             //Validamos los espacios 
