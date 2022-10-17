@@ -6,6 +6,7 @@
 package Lexico;
 
 import LoadFile.Archivo;
+import ManejadorError.TipoError;
 import Semantico.AnalisisSemantico;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -21,19 +22,19 @@ public class Analisislexico {
     public String[] tokens,data;
     public List<String> codigoMain = new ArrayList<String>(); //Nombre de las funciones 
     public Boolean itsFunction = false;
-    
+    public String auxTipoError = "";
     public HashMap<Integer,HashMap> funcionesAll = new HashMap<Integer, HashMap>();
     
     public String[] getTokens(){
         int contadorEspacios = 0,espacioDefault = 4,contadorLinea=1;
         char[] caracteres;
-        Archivo leerTxt = new Archivo("C:\\Users\\user\\Documents\\NetBeansProjects\\Compiladores\\src\\LoadFile\\CodigoPy.txt");
+        Archivo leerTxt = new Archivo("C:\\Users\\user\\Documents\\NetBeansProjects\\Compiladores\\src\\LoadFile\\CodigoPy_1.txt");
         //Obteniendo los datos en forma de Arreglo de String
         data = leerTxt.getData().stream().toArray(String[]::new);
-        for(String linea: data){
-            System.out.println(linea);
-        }
-        System.exit(0);
+//        for(String linea: data){
+//            System.out.println(linea);
+//        }
+//        System.exit(0);
         for(int i = 0; i<data.length; i++){
             contadorEspacios = 0;
             //Validamos los espacios 
@@ -77,7 +78,7 @@ public class Analisislexico {
                     codigoMain.add(data[i]); //NECESITAMOS VALIDAR
                 }else{
                     if(!data[i].isEmpty()){
-                        System.out.println(data[i]);
+                        this.auxTipoError = data[i];
                         mensajeErrorEspacio(i,"Error en la función");
                         System.exit(0);
                     }
@@ -173,6 +174,8 @@ public class Analisislexico {
     
     public void mensajeErrorEspacio(int linea, String mensaje){
         System.out.println(mensaje + ":\n En la linea " + linea);
+        TipoError tipoError = new TipoError(this.auxTipoError);
+        tipoError.getTipoError();
         System.exit(0);
     }
     

@@ -13,6 +13,8 @@ public class Archivo {
     public List<String> data = new ArrayList<String>();
     public boolean bandera = false;
     public boolean banderaFuncionesSaltos = false;
+    public boolean banderaFuncionesMainSaltos = false;
+    public boolean banderaFuncionesMainSaltosReturn = false;
     public String auxLinea = "";
     public Archivo(String nameFile){
         this.nameFile = nameFile;
@@ -31,6 +33,7 @@ public class Archivo {
         } catch (IOException ex) {
             System.out.println("Error en la lectura del archivo "+ex);
         }
+        data.removeIf(linea -> linea.isEmpty());
         return data;
     }
     
@@ -58,6 +61,10 @@ public class Archivo {
         //Evaluacion de creacion de funciones con saltos de linea 
         String exp9 = "^\\s*print\\s*\\({1}(\\n*)?([a-zA-Z,]+)?\\)?\\n?$";
         String exp10 = "^\\s*[a-zA-Z]+\\s*\\){1}(?!:)$";
+        String exp11 = "^\\s*print\\s*\\({1}.+\\){1}$"; //Evalua que no sea de forma completa el print
+        String exp12 = "^[a-zA-Z0-9]+\\s*\\({1}[\"a-zA-Z\\s:]+((,)|(\\()*)$";//Llamada a funciones desde el main con salto de linea
+        String exp13 = "^[a-zA-Z0-9]+\\({1}$";
+        String exp14 = "^[a-zA-Z0-9]+={1}([a-zA-Z0-9]+\\({1}([a-zA-Z0-9\\(]+)?)?$";//Saltos de linea de funciones que retornan valores en el MAIN
         if(Pattern.compile(exp1).matcher(linea).matches()){
             errorMensaje("Error! No se puede crear una variable con una palabra reservada de c++ \nLinea: "+linea);
         }
@@ -84,7 +91,6 @@ public class Archivo {
             this.bandera = !this.bandera;
             linea = "";
         }
-        
         if(this.bandera){
             linea = "";
         }
@@ -106,13 +112,33 @@ public class Archivo {
             auxLinea = linea;
             linea = "";
         }
-        
-        if(Pattern.compile(exp9).matcher(linea).matches()){
+        if(Pattern.compile(exp9).matcher(linea).matches() && !Pattern.compile(exp11).matcher(linea).matches() ){
             this.banderaFuncionesSaltos = true;
             auxLinea = linea;
             linea = "";
         }
+        if (this.banderaFuncionesMainSaltos) {
+            auxLinea += linea;
+            linea = auxLinea;
+            this.banderaFuncionesMainSaltos = false;
+        }
+        if(Pattern.compile(exp12).matcher(linea).matches()|Pattern.compile(exp13).matcher(linea).matches()){
+            auxLinea = linea;
+            linea = "";
+            this.banderaFuncionesMainSaltos = true;
+        }
+        if(this.banderaFuncionesMainSaltosReturn){
+            auxLinea+=linea;
+            linea = auxLinea;
+            this.banderaFuncionesMainSaltosReturn = false;
+        }
+        if(Pattern.compile(exp14).matcher(linea).matches()){
+            auxLinea = linea;
+            linea = "";
+            this.banderaFuncionesMainSaltosReturn = true;
+        }
         
+        linea = cleanStringLastIndex(linea);
         return linea; 
     }
     

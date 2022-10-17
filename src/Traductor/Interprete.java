@@ -1,5 +1,8 @@
 package Traductor;
 
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileWriter;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -55,7 +58,8 @@ public class Interprete {
         //Agregamos el final del cierre de la clase int main()
         setCodigoMain("return 0;");
         setCodigoMain("\n}");
-        mostrarData();
+//        mostrarData();
+        generarCodigo();
 //        mostrarDatosFunciones();
     }
     
@@ -189,6 +193,33 @@ public class Interprete {
         }
         System.out.println("\n");
     }
+    
+    public void generarCodigo(){
+                try {
+            String ruta = "./CodigoC.txt";
+            File file = new File(ruta);
+            // Si el archivo no existe es creado
+            if (!file.exists()) {
+                file.createNewFile();
+            }else{
+                file.delete();
+                file.createNewFile();
+            }
+            FileWriter fw = new FileWriter(file);
+            BufferedWriter bw = new BufferedWriter(fw);
+            
+            for (String linea : encabezadoLibreria) {
+                bw.write(linea+"\n");
+            }
+            for (String linea : codigoPrincipal) {
+                bw.write(linea+"\n");
+            }
+            bw.close();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+    
     public void generarCount(String linea ,boolean bandera){
         linea = linea.substring(linea.indexOf("(")+1,linea.lastIndexOf(")"));
         if(linea.contains(",")){

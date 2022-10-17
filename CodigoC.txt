@@ -1,0 +1,58 @@
+#include <iostream>
+#include <vector>
+using namespace std;
+void impresion(string mensaje,int informacion){
+    cout << " " << mensaje << " " << informacion << " \n ";
+}
+
+void impresion(string mensaje,string informacion){
+    cout << " " << mensaje << " " << informacion << " \n ";
+}
+
+vector<int> llenarLista(int longitud){
+int         elemento  ;
+vector<int>     Contenedor ;
+    for(int i=0;i<longitud;i++){
+    cout << "Introduce un numero: ";
+    cin >> elemento;
+    Contenedor.push_back(elemento);
+    }
+return Contenedor;
+}
+
+int sumatoria(vector<int> Lista){
+int     suma ;
+    suma=0;
+    for(int x=0;x<Lista.size();x++){
+    suma=suma+Lista[x];
+    }
+return suma;
+}
+
+int calcularProducto(vector<int> Lista){
+int     vActual ;
+    vActual=Lista[0];
+    for(int x=1;x<Lista.size();x++){
+    vActual=Lista[x]*vActual;
+    }
+return vActual;
+}
+
+int main(){
+
+string Datos ;
+vector<int> Datosc20c ;
+int Suma ;
+int Producto ;
+cout << "Bienvenido a compiladores" << " \n " ;
+cout << "Datos a introducir: ";
+cin >> Datos;
+impresion("El usuariointroducira",Datos);
+Datosc20c=llenarLista(stoi(Datos));
+Suma=sumatoria(Datosc20c);
+impresion("La sumatoria de los numeros es: ",Suma);
+Producto=calcularProducto(Datosc20c);
+impresion("El producto de los numeros es: ",Producto);
+return 0;
+
+}
